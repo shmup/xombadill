@@ -48,9 +48,10 @@ defmodule Xombadill.Handlers.ReloadHandler do
       # Convert module name to snake_case and path
       file_path =
         module_name
-        |> Macro.underscore()
-        |> String.replace(".", "/")
-        |> (&("lib/xombadill/handlers/" <> &1 <> ".ex")).()
+        |> String.split(".")
+        |> Enum.map(&Macro.underscore/1)
+        |> Enum.join("/")
+        |> (&("lib/" <> &1 <> ".ex")).()
 
       # Compile and reload
       Code.compile_file(file_path)
