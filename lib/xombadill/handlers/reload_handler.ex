@@ -1,98 +1,25 @@
 defmodule Xombadill.Handlers.ReloadHandler do
-  @moduledoc """
-  Handler that reloads modules when !reload command is used
-  """
   @behaviour Xombadill.HandlerBehaviour
   require Logger
+  alias Xombadill.ReloadCoordinator
 
   @impl true
-  def handle_message(
-        :channel_message,
-        %{text: text, channel: channel, client: client, nick: nick} = msg
-      ) do
-    Logger.debug("ReloadHandler received: #{inspect(text)} from #{nick}")
-
+  def handle_message(:channel_message, %{text: text, channel: channel, client: client} = _msg) do
     cond do
       String.starts_with?(text, "!reload ") ->
         module_name = String.trim_leading(text, "!reload ") |> String.trim()
-        Logger.debug("ReloadHandler detected specific module reload: #{module_name}")
-        # Use spawn to avoid deadlock
-        spawn(fn -> reload_module(module_name, channel, client) end)
+        # Use Task.start to avoid blocking the handler
+        Task.start(fn -> ReloadCoordinator.reload_module(module_name, channel, client) end)
 
       text == "!reload" ->
-        Logger.debug("ReloadHandler detected reload all command")
-        # Use spawn to avoid deadlock
-        spawn(fn -> reload_all_handlers(channel, client) end)
+        Task.start(fn -> ReloadCoordinator.reload_all_handlers(channel, client) end)
 
       true ->
-        # No action needed for non-reload messages
-        Logger.debug("ReloadHandler ignoring non-reload message")
+        :ok
     end
 
-    # Always return :ok, never :pass
     :ok
   end
 
   def handle_message(_type, _message), do: :ok
-
-  defp reload_module(module_name, channel, client) do
-    Logger.info("Attempting to reload module: #{module_name}")
-
-    try do
-      # Convert string to module atom
-      module = String.to_existing_atom("Elixir." <> module_name)
-
-      # Unregister from registry
-      Xombadill.HandlerRegistry.unregister(module)
-
-      # Reload code - using proper functions
-      :code.purge(module)
-      :code.delete(module)
-
-      # Build file_path relative to lib directory (the correct one)
-      # Convert module name to snake_case and path
-      file_path =
-        module_name
-        |> String.split(".")
-        |> Enum.map(&Macro.underscore/1)
-        |> Enum.join("/")
-        |> (&("lib/" <> &1 <> ".ex")).()
-
-      # Compile and reload
-      Code.compile_file(file_path)
-
-      # Register again
-      Xombadill.HandlerRegistry.register(module)
-
-      ExIRC.Client.msg(client, :privmsg, channel, "✅ Module #{module_name} reloaded successfully")
-    rescue
-      e ->
-        Logger.error("Failed to reload module #{module_name}: #{inspect(e)}")
-
-        ExIRC.Client.msg(
-          client,
-          :privmsg,
-          channel,
-          "❌ Error reloading #{module_name}: #{inspect(e)}"
-        )
-    end
-  end
-
-  defp reload_all_handlers(channel, client) do
-    Logger.info("Reloading all handlers")
-
-    handlers = Xombadill.HandlerRegistry.list_handlers()
-
-    Enum.each(handlers, fn module ->
-      module_name = Atom.to_string(module) |> String.replace_prefix("Elixir.", "")
-      reload_module(module_name, channel, client)
-    end)
-
-    ExIRC.Client.msg(
-      client,
-      :privmsg,
-      channel,
-      "✅ Attempted to reload #{length(handlers)} handlers"
-    )
-  end
 end

@@ -75,6 +75,7 @@ defmodule Xombadill.HandlerRegistry do
     {:reply, state.handlers, state}
   end
 
+  @impl true
   def handle_cast({:handle_message, type, message}, state) do
     Logger.debug("HandlerRegistry processing: #{inspect(type)}, message: #{inspect(message)}")
 
