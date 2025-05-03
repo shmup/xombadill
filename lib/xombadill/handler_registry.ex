@@ -75,15 +75,16 @@ defmodule Xombadill.HandlerRegistry do
     {:reply, state.handlers, state}
   end
 
-  # In handle_cast in HandlerRegistry
   def handle_cast({:handle_message, type, message}, state) do
     Logger.debug("HandlerRegistry processing: #{inspect(type)}, message: #{inspect(message)}")
 
+    # Important: add debug logs to see what's in state.handlers
+    Logger.debug("Current handlers: #{inspect(state.handlers)}")
+
     Enum.each(state.handlers, fn module ->
       try do
-        if function_exported?(module, :handle_message, 2) do
-          module.handle_message(type, message)
-        end
+        Logger.debug("Calling handler: #{inspect(module)}")
+        module.handle_message(type, message)
       rescue
         e ->
           Logger.error("Error in handler #{inspect(module)}: #{inspect(e)}")
