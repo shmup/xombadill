@@ -138,3 +138,38 @@ The table below lists the IRC nicks and characteristics for all bots commonly us
 - Not all bots support all commands; see specific server's bot help for details.
 
 Focus specifically on Henzell, Sequell, and any bots directly used for monitoring deaths/milestones (see above).
+
+---
+
+## Data Sources Table
+
+This table lists all data sources used by the bot, including IRC/bot information and database storage. It should make clear, for any piece of information (milestones, death events, !! commands, etc), where the source is and how it is accessed.
+
+| Source Name     | Type         | Location / Server           | Channel(s)/Table       | Description / Notes                                                        |
+|-----------------|--------------|-----------------------------|------------------------|------------------------------------------------------------------------------|
+| Henzell         | IRC Bot      | irc.libera.chat             | ##crawl, #crawl-octolog | Listens for CAO events, milestones, deaths.                                 |
+| Sequell         | IRC Bot      | irc.libera.chat             | ##crawl                | Receives most ! and ?? commands, global stats, LearnDB, milestones/deaths.  |
+| Gretell         | IRC Bot      | irc.libera.chat             | ##crawl                | Receives @commands specifically for CDO server.                              |
+| Sizzell         | IRC Bot      | irc.libera.chat             | ##crawl                | Receives %commands (CSZO server).                                            |
+| Jorgrell        | IRC Bot      | irc.libera.chat             | ##crawl                | Receives =commands (CJR server).                                             |
+| Lantell         | IRC Bot      | irc.libera.chat             | ##crawl                | Receives $commands (CLAN server).                                            |
+| Rotatell        | IRC Bot      | irc.libera.chat             | ##crawl                | Receives ^commands (CBRO server).                                            |
+| Cheibriados     | IRC Bot      | irc.libera.chat             | ##crawl                | Handles %%commands, alternate stats/learnDB.                                 |
+| Eksell          | IRC Bot      | irc.libera.chat             | ##crawl                | Handles CXC server/commands.                                                 |
+| Local Database  | SQLite       | db/save.db (local)          | deaths, watchlist, dictionary, challenges, challenge_* views | Stores milestones, deaths, challenges, watchlist, dictionary data.|
+| Local IRC       | IRC Server   | castleheck.tx.us.lunarnet.org| #octolog               | Bot relay, user command entry, local output/echo. (see octotrog.js config)  |
+
+**Notes:**
+- For event capture/relay, the main IRC data source is the ##crawl channel on irc.libera.chat. All bots above (Henzell, Sequell, etc) are present there, and their output is parsed for milestone/death/response events.
+- The output from these bots is listened to and parsed on the channel(s) specified.
+- The local database (see tables listed in schema.sql) stores all parsed game info for later querying via bot/web.
+- The local connection on castleheck.tx.us.lunarnet.org (#octolog) is where this bot sits to chat and relay commands locally.
+- Any responses to relayed commands sent to the infobots above are brought back from ##crawl and output back to #octolog (or configured channels as per octotrog.js).
+
+---
+
+Use this table to verify coverage: before using a data source (IRC, DB table), confirm it is listed here and you know exactly where to listen, which channel, or which table to read/write.
+
+---
+
+End of document.
