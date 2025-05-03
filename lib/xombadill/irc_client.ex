@@ -118,7 +118,7 @@ defmodule Xombadill.IrcClient do
 
   # handle public messages
   def handle_info({:received, msg, %{nick: nick, user: user, host: host}, channel}, state) do
-    IO.puts("#{channel} #{nick}: #{msg}")
+    Logger.info("#{channel} #{nick}: #{msg}", truncate: :infinity)
 
     HandlerRegistry.handle_message(:channel_message, %{
       text: msg,
@@ -134,7 +134,7 @@ defmodule Xombadill.IrcClient do
 
   # handle private messages
   def handle_info({:received, msg, info}, state) do
-    IO.puts("PRIVATE #{info.nick}: #{msg}")
+    Logger.info("PRIVATE #{info.nick}: #{msg}", truncate: :infinity)
 
     # Pass to handler registry
     HandlerRegistry.handle_message(:private_message, %{
