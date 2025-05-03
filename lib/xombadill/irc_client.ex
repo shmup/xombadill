@@ -76,24 +76,6 @@ defmodule Xombadill.IrcClient do
     {:noreply, %{state | channels: state.channels -- [channel]}}
   end
 
-  def handle_cast({:handle_message, type, message}, state) do
-    Logger.debug("Processing message type: #{type} with handlers: #{inspect(state.handlers)}")
-
-    Enum.each(state.handlers, fn module ->
-      try do
-        if function_exported?(module, :handle_message, 2) do
-          Logger.debug("Calling handler: #{inspect(module)}")
-          module.handle_message(type, message)
-        end
-      rescue
-        e ->
-          Logger.error("Error in handler #{inspect(module)}: #{inspect(e)}")
-      end
-    end)
-
-    {:noreply, state}
-  end
-
   # handle connection messages
   @impl true
   def handle_info({:connected, server, port}, state) do
@@ -134,16 +116,15 @@ defmodule Xombadill.IrcClient do
     {:noreply, state}
   end
 
-  # handle channel messages
-  def handle_info({:received, msg, info, channel}, state) do
-    IO.puts("#{channel} #{info.nick}: #{msg}")
+  # handle public messages
+  def handle_info({:received, msg, %{nick: nick, user: user, host: host}, channel}, state) do
+    IO.puts("#{channel} #{nick}: #{msg}")
 
-    # Pass to handler registry
     HandlerRegistry.handle_message(:channel_message, %{
       text: msg,
-      nick: info.nick,
-      user: info.user,
-      host: info.host,
+      nick: nick,
+      user: user,
+      host: host,
       channel: channel,
       client: state.client
     })
@@ -220,8 +201,8 @@ defmodule Xombadill.IrcClient do
   end
 
   # catch-all for messages
-  def handle_info(msg, state) do
-    Logger.debug("Unhandled message: #{inspect(msg)}")
+  def handle_info(_msg, state) do
+    # Logger.debug("Unhandled message: #{inspect(msg)}")
     {:noreply, state}
   end
 end

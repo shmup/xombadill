@@ -8,7 +8,7 @@ defmodule Xombadill.Handlers.EchoHandler do
   @impl true
   def handle_message(
         :channel_message,
-        %{text: text, nick: nick, channel: channel, client: client} = msg
+        %{text: text, nick: nick, channel: channel, client: client} = _msg
       ) do
     Logger.debug("EchoHandler received: #{inspect(%{text: text, nick: nick, channel: channel})}")
 
