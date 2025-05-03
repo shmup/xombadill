@@ -10,9 +10,12 @@ defmodule Xombadill.Handlers.EchoHandler do
     Logger.debug("EchoHandler received channel message: #{inspect(message)}")
 
     with %{text: text, nick: nick, channel: channel, client: client} <- message do
-      Logger.debug("EchoHandler processing with text: #{text}, nick: #{nick}")
-      ExIRC.Client.msg(client, :privmsg, channel, "#{nick} said: #{text}")
-      Logger.debug("EchoHandler sent reply")
+      unless String.starts_with?(text, "!") do
+        ExIRC.Client.msg(client, :privmsg, channel, "#{nick} said: #{text}")
+        Logger.debug("EchoHandler sent reply")
+      else
+        Logger.debug("EchoHandler skipping message starting with !")
+      end
     else
       _ -> Logger.warning("EchoHandler couldn't process message: #{inspect(message)}")
     end
