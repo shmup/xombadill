@@ -6,14 +6,17 @@ defmodule Xombadill.Handlers.EchoHandler do
   require Logger
 
   @impl true
-  def handle_message(
-        :channel_message,
-        %{text: text, nick: nick, channel: channel, client: client} = _msg
-      ) do
-    Logger.debug("EchoHandler received: #{inspect(%{text: text, nick: nick, channel: channel})}")
+  def handle_message(:channel_message, message) do
+    Logger.debug("EchoHandler received channel message: #{inspect(message)}")
 
-    # Don't echo !reload to avoid spamming if desired. But allow echo of messages that start with !reload too, if required by prompt
-    ExIRC.Client.msg(client, :privmsg, channel, "#{nick} said: #{text}")
+    with %{text: text, nick: nick, channel: channel, client: client} <- message do
+      Logger.debug("EchoHandler processing with text: #{text}, nick: #{nick}")
+      ExIRC.Client.msg(client, :privmsg, channel, "#{nick} said: #{text}")
+      Logger.debug("EchoHandler sent reply")
+    else
+      _ -> Logger.warning("EchoHandler couldn't process message: #{inspect(message)}")
+    end
+
     :ok
   end
 
