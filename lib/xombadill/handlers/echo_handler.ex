@@ -9,11 +9,9 @@ defmodule Xombadill.Handlers.EchoHandler do
   def handle_message(:channel_message, %{text: text, nick: nick, channel: channel, client: client}) do
     Logger.debug("EchoHandler received: #{inspect(%{text: text, nick: nick, channel: channel})}")
 
-    if String.starts_with?(text, "!echo ") do
-      response = String.trim_leading(text, "!echo ")
-      Logger.info("Echoing: #{response}")
-      ExIRC.Client.msg(client, :privmsg, channel, "#{nick} said: #{response}")
-    end
+    # Echo EVERYTHING said by the user back to the channel
+    ExIRC.Client.msg(client, :privmsg, channel, "#{nick} said: #{text}")
+    :ok
   end
 
   def handle_message(type, message) do
