@@ -10,10 +10,12 @@ defmodule Xombadill.Handlers.ReloadHandler do
     cond do
       String.starts_with?(text, "!reload ") ->
         module_name = String.trim_leading(text, "!reload ") |> String.trim()
-        reload_module(module_name, channel, client)
+        # Use spawn to avoid deadlock
+        spawn(fn -> reload_module(module_name, channel, client) end)
 
       text == "!reload" ->
-        reload_all_handlers(channel, client)
+        # Use spawn to avoid deadlock
+        spawn(fn -> reload_all_handlers(channel, client) end)
 
       true ->
         :ok
@@ -32,9 +34,13 @@ defmodule Xombadill.Handlers.ReloadHandler do
       # Unregister from registry
       Xombadill.HandlerRegistry.unregister(module)
 
-      # Reload code
-      Code.purge(module)
-      Code.load_file(module_name |> String.downcase() |> String.replace(".", "/") |> Kernel.<>(".ex"))
+      # Reload code - using proper functions
+      :code.purge(module)
+      :code.delete(module)
+
+      # Use Code.compile_file instead of deprecated load_file
+      file_path = module_name |> String.downcase() |> String.replace(".", "/") |> Kernel.<>(".ex")
+      Code.compile_file(file_path)
 
       # Register again
       Xombadill.HandlerRegistry.register(module)
@@ -50,7 +56,14 @@ defmodule Xombadill.Handlers.ReloadHandler do
   defp reload_all_handlers(channel, client) do
     Logger.info("Reloading all handlers")
 
-    handlers = Xombadill.HandlerRegistry.list_handlers()
+    # Get handlers list directly from the module's state
+    # This avoids the deadlock by not calling back into the registry
+    handlers =
+      try do
+        :sys.get_state(Xombadill.HandlerRegistry).handlers
+      rescue
+        _ -> []
+      end
 
     Enum.each(handlers, fn module ->
       module_name = Atom.to_string(module) |> String.replace_prefix("Elixir.", "")
