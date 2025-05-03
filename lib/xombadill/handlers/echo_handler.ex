@@ -6,7 +6,10 @@ defmodule Xombadill.Handlers.EchoHandler do
   require Logger
 
   @impl true
-  def handle_message(:channel_message, %{text: text, nick: nick, channel: channel, client: client} = msg) do
+  def handle_message(
+        :channel_message,
+        %{text: text, nick: nick, channel: channel, client: client} = msg
+      ) do
     Logger.debug("EchoHandler received: #{inspect(%{text: text, nick: nick, channel: channel})}")
 
     # Don't echo !reload to avoid spamming if desired. But allow echo of messages that start with !reload too, if required by prompt
