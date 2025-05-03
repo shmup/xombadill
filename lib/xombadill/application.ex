@@ -8,8 +8,13 @@ defmodule Xombadill.Application do
 
   @impl true
   def start(_type, _args) do
+    default_handlers = [
+      Xombadill.Handlers.EchoHandler,
+      Xombadill.Handlers.ReloadHandler
+    ]
+
     children = [
-      {Xombadill.HandlerRegistry, []},
+      {Xombadill.HandlerRegistry, [default_handlers: default_handlers]},
       {Xombadill.IrcClient,
        [
          nick: "xombadill",
@@ -22,20 +27,14 @@ defmodule Xombadill.Application do
     opts = [strategy: :one_for_one, name: Xombadill.Supervisor]
     result = Supervisor.start_link(children, opts)
 
-    register_default_handlers()
+    # Log registered handlers after supervisor start for confirmation
+    # Optional: Use spawn or Task.start to avoid blocking if registry call is slow,
+    # but usually direct call is fine here.
+    Logger.info("Attempting to list initially registered handlers...")
+    handlers = Xombadill.HandlerRegistry.list_handlers()
+    Logger.info("Initially registered handlers: #{inspect(handlers)}")
 
     result
-  end
-
-  @doc """
-  Register the default handlers that should be active on startup.
-  """
-  def register_default_handlers do
-    # Register the echo handler
-    Xombadill.HandlerRegistry.register(Xombadill.Handlers.EchoHandler)
-    # Register the reload handler
-    Xombadill.HandlerRegistry.register(Xombadill.Handlers.ReloadHandler)
-    Logger.info("Registered default handlers")
   end
 
   @doc """

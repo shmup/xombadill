@@ -43,8 +43,11 @@ defmodule Xombadill.HandlerRegistry do
   # Server Callbacks
 
   @impl true
-  def init(_opts) do
-    {:ok, %{handlers: []}}
+  def init(opts) do
+    initial_handlers = Keyword.get(opts, :default_handlers, [])
+    # Consider adding checks here to ensure modules exist and implement the behaviour if needed
+    Logger.info("Initializing HandlerRegistry with handlers: #{inspect(initial_handlers)}")
+    {:ok, %{handlers: initial_handlers}}
   end
 
   @impl true

@@ -76,12 +76,7 @@ defmodule Xombadill.Handlers.ReloadHandler do
   defp reload_all_handlers(channel, client) do
     Logger.info("Reloading all handlers")
 
-    handlers =
-      try do
-        :sys.get_state(Xombadill.HandlerRegistry).handlers
-      rescue
-        _ -> []
-      end
+    handlers = Xombadill.HandlerRegistry.list_handlers()
 
     Enum.each(handlers, fn module ->
       module_name = Atom.to_string(module) |> String.replace_prefix("Elixir.", "")

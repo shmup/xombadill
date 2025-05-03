@@ -76,6 +76,24 @@ defmodule Xombadill.IrcClient do
     {:noreply, %{state | channels: state.channels -- [channel]}}
   end
 
+  def handle_cast({:handle_message, type, message}, state) do
+    Logger.debug("Processing message type: #{type} with handlers: #{inspect(state.handlers)}")
+
+    Enum.each(state.handlers, fn module ->
+      try do
+        if function_exported?(module, :handle_message, 2) do
+          Logger.debug("Calling handler: #{inspect(module)}")
+          module.handle_message(type, message)
+        end
+      rescue
+        e ->
+          Logger.error("Error in handler #{inspect(module)}: #{inspect(e)}")
+      end
+    end)
+
+    {:noreply, state}
+  end
+
   # handle connection messages
   @impl true
   def handle_info({:connected, server, port}, state) do
