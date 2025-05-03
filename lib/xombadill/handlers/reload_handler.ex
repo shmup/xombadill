@@ -8,23 +8,28 @@ defmodule Xombadill.Handlers.ReloadHandler do
   @impl true
   def handle_message(
         :channel_message,
-        %{text: text, channel: channel, client: client, nick: _nick} = _msg
+        %{text: text, channel: channel, client: client, nick: nick} = msg
       ) do
+    Logger.debug("ReloadHandler received: #{inspect(text)} from #{nick}")
+
     cond do
       String.starts_with?(text, "!reload ") ->
         module_name = String.trim_leading(text, "!reload ") |> String.trim()
+        Logger.debug("ReloadHandler detected specific module reload: #{module_name}")
         # Use spawn to avoid deadlock
         spawn(fn -> reload_module(module_name, channel, client) end)
 
       text == "!reload" ->
+        Logger.debug("ReloadHandler detected reload all command")
         # Use spawn to avoid deadlock
         spawn(fn -> reload_all_handlers(channel, client) end)
 
       true ->
-        # Let other handlers (like EchoHandler) see all messages as well
-        :pass
+        # No action needed for non-reload messages
+        Logger.debug("ReloadHandler ignoring non-reload message")
     end
 
+    # Always return :ok, never :pass
     :ok
   end
 
