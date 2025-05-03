@@ -26,3 +26,19 @@ be found at <https://hexdocs.pm/xombadill>.
 dnf install erlang elixir
 mix new xombadill --sup
 ```
+
+```bash
+git clone https://github.com/elixir-lsp/elixir-ls.git ~/.elixir-ls
+cd ~/.elixir-ls
+mix deps.get && mix compile && MIX_ENV=prod mix elixir_ls.release2 -o release
+```
+
+```
+:CocConfig
+
+Add:
+
+{
+  "elixir.pathToElixirLS": "~/.elixir-ls/release/language_server.sh"
+}
+```
