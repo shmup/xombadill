@@ -49,7 +49,8 @@ defmodule Xombadill.IrcClient do
       host: opts[:host] || "irc.slashnet.org",
       port: opts[:port] || 6667,
       nick: opts[:nick] || "xombadill",
-      channels: opts[:channels] || ["#splat"]
+      channels: opts[:channels] || ["#splat"],
+      server_id: opts[:server_id] || :default
     }
 
     ExIRC.Client.add_handler(client, self())
@@ -169,10 +170,15 @@ defmodule Xombadill.IrcClient do
   end
 
   # handle users joining channels
-  def handle_info({:joined, channel, user}, state) do
-    Logger.debug("#{user} joined #{channel}")
+  def handle_info(
+        {:joined, channel, %ExIRC.SenderInfo{nick: nick, host: host, user: user}},
+        state
+      ) do
+    Logger.debug("#{nick} joined #{channel}")
 
     HandlerRegistry.handle_message(:user_joined, %{
+      nick: nick,
+      host: host,
       user: user,
       channel: channel,
       client: state.client

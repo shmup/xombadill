@@ -29,6 +29,7 @@ defmodule Xombadill.Handlers.RelayHandler do
     # Logic to determine if a message is a milestone
     String.contains?(text, "has entered") ||
       String.contains?(text, "has reached") ||
-      String.contains?(text, "has won")
+      String.contains?(text, "has won") ||
+      String.contains?(text, "hello")
   end
 end
