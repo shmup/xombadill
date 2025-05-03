@@ -3,15 +3,20 @@ defmodule Xombadill.IrcClient do
   require Logger
   alias Xombadill.HandlerRegistry
 
+  def via_tuple(server_id) do
+    {:via, Registry, {Xombadill.IrcRegistry, server_id}}
+  end
+
   def start_link(opts) do
-    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
+    server_id = opts[:server_id] || :default
+    GenServer.start_link(__MODULE__, opts, name: via_tuple(server_id))
   end
 
   @doc """
   Send a message to a channel.
   """
-  def say(channel, message) do
-    GenServer.cast(__MODULE__, {:say, channel, message})
+  def say(server_id, channel, message) do
+    GenServer.cast(via_tuple(server_id), {:say, channel, message})
   end
 
   @doc """
@@ -118,7 +123,7 @@ defmodule Xombadill.IrcClient do
 
   # handle public messages
   def handle_info({:received, msg, %{nick: nick, user: user, host: host}, channel}, state) do
-    Logger.info("#{channel} #{nick}: #{msg}", truncate: :infinity)
+    Logger.info("[#{state.server_id}] #{channel} #{nick}: #{msg}", truncate: :infinity)
 
     HandlerRegistry.handle_message(:channel_message, %{
       text: msg,
@@ -126,7 +131,9 @@ defmodule Xombadill.IrcClient do
       user: user,
       host: host,
       channel: channel,
-      client: state.client
+      client: state.client,
+      server_id: state.server_id,
+      server_host: state.host
     })
 
     {:noreply, state}
