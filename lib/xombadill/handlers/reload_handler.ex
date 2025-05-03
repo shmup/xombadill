@@ -9,6 +9,23 @@ defmodule Xombadill.Handlers.ReloadHandler do
       text == "!reload" ->
         Task.start(fn -> ReloadCoordinator.reload_all_handlers(channel, client) end)
 
+      String.starts_with?(text, "!loglevel ") ->
+        level_str = String.replace(text, "!loglevel ", "")
+
+        try do
+          level = String.to_existing_atom(level_str)
+          Logger.configure(level: level)
+          ExIRC.Client.msg(client, :privmsg, channel, "✅ Log level changed to #{level_str}")
+        rescue
+          _ ->
+            ExIRC.Client.msg(
+              client,
+              :privmsg,
+              channel,
+              "❌ Invalid log level. Use debug, info, warning, or error"
+            )
+        end
+
       true ->
         :ok
     end
