@@ -10,6 +10,10 @@ defmodule Xombadill.Application do
     children = [
       # Starts a worker by calling: Xombadill.Worker.start_link(arg)
       # {Xombadill.Worker, arg}
+      {Xombadill.IrcClient, [
+        nick: "xombadill",
+        channels: ["#splat"]
+      ]}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
