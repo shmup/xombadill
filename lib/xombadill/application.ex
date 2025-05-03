@@ -33,6 +33,8 @@ defmodule Xombadill.Application do
   def register_default_handlers do
     # Register the echo handler
     Xombadill.HandlerRegistry.register(Xombadill.Handlers.EchoHandler)
+    # Register the reload handler
+    Xombadill.HandlerRegistry.register(Xombadill.Handlers.ReloadHandler)
     Logger.info("Registered default handlers")
   end
 
