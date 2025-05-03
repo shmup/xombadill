@@ -5,12 +5,16 @@ defmodule Xombadill.ReloadCoordinator do
   """
   require Logger
 
+  # In your ReloadCoordinator module:
   def reload_module(module_name, channel, client) do
     Logger.info("Attempting to reload module: #{module_name}")
 
     try do
       module = String.to_existing_atom("Elixir." <> module_name)
       Xombadill.HandlerRegistry.unregister(module)
+
+      # Temporarily disable redefinition warnings
+      previous_options = Code.compiler_options(ignore_module_conflict: true)
 
       :code.purge(module)
       :code.delete(module)
@@ -23,6 +27,10 @@ defmodule Xombadill.ReloadCoordinator do
         |> (&("lib/" <> &1 <> ".ex")).()
 
       Code.compile_file(file_path)
+
+      # Restore previous compiler options
+      Code.compiler_options(previous_options)
+
       Xombadill.HandlerRegistry.register(module)
 
       ExIRC.Client.msg(client, :privmsg, channel, "✅ Module #{module_name} reloaded successfully")
