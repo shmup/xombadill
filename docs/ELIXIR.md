@@ -1,3 +1,35 @@
+You can't directly interact with IEx in the terminal when running with --no-halt because the shell is taken over by your application. Here's how to access IEx with your running application:
+Option 1: Remote Shell
+
+    Start your application with a name:
+
+css
+
+elixir --name xombadill@127.0.0.1 --cookie secret -S mix run --no-halt
+
+    In another terminal, connect to it:
+
+css
+
+iex --name console@127.0.0.1 --cookie secret --remsh xombadill@127.0.0.1
+
+Option 2: Start with IEx
+
+Instead of running with --no-halt, start your app in an IEx shell:
+
+text
+
+iex -S mix
+
+Then manually start your application:
+
+elixir
+
+Application.ensure_all_started(:xombadill)
+
+
+
+
 # Understanding the Elixir Code Block
 
 This code defines an `init/1` function that initializes an IRC client connection. Let's break it down:
