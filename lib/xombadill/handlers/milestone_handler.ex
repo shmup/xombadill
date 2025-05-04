@@ -2,6 +2,7 @@ defmodule Xombadill.Handlers.MilestoneHandler do
   @moduledoc """
   A handler that relays DCSS deaths and other milestones from Libera/#crawl-octolog
   to the configured channel based on certain patterns or tracked players.
+  Also handles commands to manage tracked players.
   """
 
   @behaviour Xombadill.HandlerBehaviour
@@ -12,30 +13,74 @@ defmodule Xombadill.Handlers.MilestoneHandler do
         :channel_message,
         %{
           text: text,
-          nick: _nick,
+          nick: _sender_nick,
           channel: channel,
           server_id: server_id,
           server_host: _server_host
         } = _msg
       ) do
-    if server_id == :libera && channel == "#crawl-octolog" do
-      cond do
-        is_death_message?(text) ->
-          formatted_message = format_death_message(text)
-          Xombadill.Config.say(formatted_message)
+    cond do
+      # Handle !watch, !unwatch, !watched commands from any channel/server
+      String.starts_with?(text, "!watch ") ->
+        player = String.trim(String.replace(text, "!watch ", ""))
+        handle_watch_command(player)
 
-        is_tracked_player_message?(text) ->
-          Xombadill.Config.say("#tracked #{text}")
+      String.starts_with?(text, "!unwatch ") ->
+        player = String.trim(String.replace(text, "!unwatch ", ""))
+        handle_unwatch_command(player)
 
-        true ->
-          :ok
-      end
+      text == "!watched" ->
+        handle_watched_command()
+
+      # Only process milestone messages from Libera/#crawl-octolog
+      server_id == :libera && channel == "#crawl-octolog" ->
+        cond do
+          is_death_message?(text) ->
+            formatted_message = format_death_message(text)
+            Xombadill.Config.say(formatted_message)
+
+          is_tracked_player_message?(text) ->
+            Xombadill.Config.say("#tracked #{text}")
+
+          true ->
+            :ok
+        end
+
+      true ->
+        :ok
     end
 
     :ok
   end
 
   def handle_message(_type, _message), do: :ok
+
+  defp handle_watch_command(player) do
+    if player != "" do
+      Xombadill.TrackedPlayers.track(player)
+      Xombadill.Config.say("Now watching #{player}")
+    end
+  end
+
+  defp handle_unwatch_command(player) do
+    if player != "" do
+      Xombadill.TrackedPlayers.untrack(player)
+      Xombadill.Config.say("No longer watching #{player}")
+    end
+  end
+
+  defp handle_watched_command do
+    players = Xombadill.TrackedPlayers.list()
+
+    case players do
+      [] ->
+        Xombadill.Config.say("No players being watched")
+
+      players ->
+        player_list = Enum.join(players, ", ")
+        Xombadill.Config.say("Watching: #{player_list}")
+    end
+  end
 
   defp is_death_message?(text) do
     Regex.match?(~r/\(L\d+\s+\w+\w+\).+with\s+\d+\s+points\s+after\s+\d+\s+turns/, text)
