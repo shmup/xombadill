@@ -23,7 +23,7 @@ defmodule Xombadill.Handlers.BotRelayHandler do
     "&&" => "Sequell",
     "=" => "Jorgrell",
     "$" => "Lantell",
-    "^" => "Rotatell"
+    "^" => "Cbrotelljr"
   }
   @input_channel "#splat"
   @libera_id :libera
@@ -45,9 +45,11 @@ defmodule Xombadill.Handlers.BotRelayHandler do
             send(pid, {:libera_bot_reply, bot_nick, text})
           end
         end)
+
         :ok
 
-      _ -> :ok
+      _ ->
+        :ok
     end
   end
 
@@ -56,13 +58,16 @@ defmodule Xombadill.Handlers.BotRelayHandler do
     case parse_bot_command(text) do
       {bot_nick, relay_line} ->
         pm_and_relay(bot_nick, relay_line, sender_nick)
-      nil -> :ok
+
+      nil ->
+        :ok
     end
   end
 
   # Send PM to the bot and setup response relay
   defp pm_and_relay(bot_nick, line, sender_nick) do
     libera_client = get_libera_client()
+
     if libera_client do
       # Use a separate Task for better isolation and error handling
       Task.start(fn ->
@@ -99,7 +104,9 @@ defmodule Xombadill.Handlers.BotRelayHandler do
       [{pid, _}] ->
         %{client: client} = :sys.get_state(pid)
         client
-      _ -> nil
+
+      _ ->
+        nil
     end
   end
 
