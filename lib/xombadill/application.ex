@@ -24,7 +24,7 @@ defmodule Xombadill.Application do
           host: "irc.libera.chat",
           port: 6667,
           nick: "xombadill",
-          channels: ["#pissss"]
+          channels: ["#pissss", "#crawl-octolog"]
         }
       }
     }
