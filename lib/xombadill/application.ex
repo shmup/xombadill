@@ -7,7 +7,9 @@ defmodule Xombadill.Application do
     default_handlers = [
       Xombadill.Handlers.EchoHandler,
       Xombadill.Handlers.ReloadHandler,
-      Xombadill.Handlers.RelayHandler
+      Xombadill.Handlers.RelayHandler,
+      Xombadill.Handlers.MilestoneHandler,
+      Xombadill.Handlers.LearnDBHandler
     ]
 
     config = %{
