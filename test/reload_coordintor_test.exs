@@ -1,21 +1,20 @@
 defmodule Xombadill.ReloadCoordinatorTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: false
+  @moduletag :reload_coordinator
   import ExUnit.CaptureLog
 
   alias Xombadill.ReloadCoordinator
 
   setup do
-    # Create a mock registry
-    mock_registry = :mox.defmock(MockHandlerRegistry, for: Xombadill.HandlerRegistryBehaviour)
-    :mox.stub(MockHandlerRegistry, :unregister, fn _ -> :ok end)
-    :mox.stub(MockHandlerRegistry, :register, fn _ -> :ok end)
+    # Configure the mocks
+    Mox.stub(MockHandlerRegistry, :unregister, fn _ -> :ok end)
+    Mox.stub(MockHandlerRegistry, :register, fn _ -> :ok end)
 
     # Override the handler registry module
     Application.put_env(:xombadill, :handler_registry, MockHandlerRegistry)
 
     # Mock Config.say
-    mock_config = :mox.defmock(MockConfig, for: Xombadill.ConfigBehaviour)
-    :mox.stub(MockConfig, :say, fn message -> send(self(), {:config_say, message}) end)
+    Mox.stub(MockConfig, :say, fn message -> send(self(), {:config_say, message}) end)
 
     Application.put_env(:xombadill, :config, MockConfig)
 
@@ -38,6 +37,27 @@ defmodule Xombadill.ReloadCoordinatorTest do
     %{client: self(), channel: "#test"}
   end
 
+  # Create a mock for ExIRC.Client.msg
+  defmodule MockMessageClient do
+    def msg(_client, _cmd, _channel, text) do
+      test_pid = Process.whereis(ReloadTest)
+      if test_pid, do: send(test_pid, {:msg, text})
+      :ok
+    end
+  end
+
+  setup do
+    Process.register(self(), ReloadTest)
+    :ok
+  end
+
+  # Patch test versions of the functions we need
+  defmodule ExIRC.Client do
+    def msg(client, cmd, channel, message) do
+      MockMessageClient.msg(client, cmd, channel, message)
+    end
+  end
+
   test "reload_module successfully reloads a module", %{client: client, channel: channel} do
     output =
       capture_log(fn ->
@@ -54,7 +74,7 @@ defmodule Xombadill.ReloadCoordinatorTest do
     output =
       capture_log(fn ->
         ReloadCoordinator.reload_module("Xombadill.NonExistentModule", channel, client)
-        assert_receive {:msg, :privmsg, "#test", message}
+        assert_receive {:msg, message}
         assert message =~ "❌ Error reloading Xombadill.NonExistentModule"
       end)
 

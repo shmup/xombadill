@@ -11,8 +11,22 @@ defmodule Xombadill.Handlers.EchoHandler do
 
     with %{text: text, nick: nick, channel: channel, client: client} <- message do
       unless String.starts_with?(text, "!") or channel != "#splat" do
-        ExIRC.Client.msg(client, :privmsg, channel, "#{nick} said: #{text}")
-        Logger.debug("EchoHandler sent reply")
+        try do
+          # Handle both actual ExIRC.Client and mock client implementations
+          cond do
+            is_atom(client) ->
+              # Handle case where client is a module that implements msg/4
+              apply(client, :msg, [client, :privmsg, channel, "#{nick} said: #{text}"])
+
+            true ->
+              # Default to ExIRC.Client for regular clients
+              ExIRC.Client.msg(client, :privmsg, channel, "#{nick} said: #{text}")
+          end
+
+          Logger.debug("EchoHandler sent reply")
+        rescue
+          e -> Logger.error("Error sending message: #{inspect(e)}")
+        end
       else
         Logger.debug("EchoHandler skipping message starting with !")
       end

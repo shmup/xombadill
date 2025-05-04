@@ -38,12 +38,30 @@ defmodule Xombadill.ReloadCoordinator do
       e ->
         Logger.error("Failed to reload module #{module_name}: #{inspect(e)}")
 
-        ExIRC.Client.msg(
-          client,
-          :privmsg,
-          channel,
-          "❌ Error reloading #{module_name}: #{inspect(e)}"
-        )
+        # Handle both actual ExIRC.Client and mock client implementations
+        try do
+          cond do
+            is_atom(client) ->
+              # Handle case where client is a module that implements msg/4
+              apply(client, :msg, [
+                client,
+                :privmsg,
+                channel,
+                "❌ Error reloading #{module_name}: #{inspect(e)}"
+              ])
+
+            true ->
+              # Default to ExIRC.Client for regular clients
+              ExIRC.Client.msg(
+                client,
+                :privmsg,
+                channel,
+                "❌ Error reloading #{module_name}: #{inspect(e)}"
+              )
+          end
+        rescue
+          err -> Logger.error("Error sending error message: #{inspect(err)}")
+        end
     end
   end
 

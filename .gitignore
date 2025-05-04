@@ -26,3 +26,5 @@ xombadill-*.tar
 /tmp/
 
 .aider*
+
+**/.claude/settings.local.json

@@ -1,19 +1,47 @@
 defmodule Xombadill.IrcClientTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: false
+  @moduletag :irc_client
 
   alias Xombadill.IrcClient
 
   setup do
-    # Mock ExIRC functionality
+    # Register test process
+    Process.register(self(), IrcClientTest)
+
+    # Mock ExIRC functionality - keep the reference to help with testing
     mock_client = self()
 
-    mock_module = :mox.defmock(MockExIRC, for: ExIRC.ClientBehaviour)
-    :mox.expect(MockExIRC, :start_link!, fn -> {:ok, mock_client} end)
-    :mox.expect(MockExIRC, :add_handler, fn _, _ -> :ok end)
-    :mox.expect(MockExIRC, :connect!, fn _, _, _ -> :ok end)
+    # Define a module for mocking
+    defmodule(MockExIRC, do: nil)
 
-    # Start a test Registry
-    start_supervised!({Registry, keys: :unique, name: Xombadill.IrcRegistry})
+    # Re-define ExIRC.Client for the test
+    defmodule ExIRC.Client do
+      def start_link!() do
+        {:ok, Process.whereis(IrcClientTest)}
+      end
+
+      def add_handler(_, _) do
+        :ok
+      end
+
+      def connect!(_, _, _) do
+        :ok
+      end
+
+      def logon(_, nick, user, name, password) do
+        send(Process.whereis(IrcClientTest), {:logon, nick, user, name, password})
+        :ok
+      end
+
+      def join(_, _) do
+        :ok
+      end
+    end
+
+    # Ensure we have a Registry
+    unless Process.whereis(Xombadill.IrcRegistry) do
+      start_supervised!({Registry, keys: :unique, name: Xombadill.IrcRegistry})
+    end
 
     # Make it possible to use the IrcClient with our mock
     opts = %{
@@ -42,13 +70,13 @@ defmodule Xombadill.IrcClientTest do
   end
 
   test "handles channel messages", %{client_pid: client_pid} do
-    # Setup a mock HandlerRegistry
-    mock_registry = :mox.defmock(MockHandlerRegistry, for: Xombadill.HandlerRegistryBehaviour)
-
-    :mox.expect(MockHandlerRegistry, :handle_message, fn type, message ->
-      send(self(), {:handler_registry_received, type, message})
-      :ok
-    end)
+    # Setup a mock HandlerRegistry directly
+    defmodule MockHandlerRegistry do
+      def handle_message(type, message) do
+        send(Process.whereis(IrcClientTest), {:handler_registry_received, type, message})
+        :ok
+      end
+    end
 
     # Override the handler registry module
     Application.put_env(:xombadill, :handler_registry, MockHandlerRegistry)

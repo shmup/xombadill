@@ -6,12 +6,26 @@ defmodule Xombadill.HandlerRegistryTest do
   defmodule MockHandler do
     @behaviour Xombadill.HandlerBehaviour
     def handle_message(type, message) do
-      send(self(), {:mock_handler, type, message})
+      if Process.whereis(RegistryTest) do
+        send(Process.whereis(RegistryTest), {:mock_handler, type, message})
+      end
+
       :ok
     end
   end
 
   setup do
+    Process.register(self(), RegistryTest)
+    # Start a clean registry for testing
+    # Only try to stop if it exists
+    try do
+      if Process.whereis(HandlerRegistry) do
+        GenServer.stop(HandlerRegistry, :normal)
+      end
+    rescue
+      _ -> :ok
+    end
+
     start_supervised!({HandlerRegistry, [default_handlers: []]})
     :ok
   end

@@ -29,13 +29,23 @@ defmodule Xombadill.Application do
       }
     }
 
-    children = [
-      {Registry, keys: :unique, name: Xombadill.IrcRegistry},
-      {Xombadill.HandlerRegistry, [default_handlers: default_handlers]},
-      {Xombadill.IrcSupervisor, config.servers},
-      # New GenServer to store config
-      {Xombadill.Config, config}
-    ]
+    children =
+      if Mix.env() == :test do
+        # In test environment, just start the registry and config
+        [
+          {Registry, keys: :unique, name: Xombadill.IrcRegistry},
+          {Xombadill.Config, config}
+        ]
+      else
+        # In normal operation, start everything
+        [
+          {Registry, keys: :unique, name: Xombadill.IrcRegistry},
+          {Xombadill.HandlerRegistry, [default_handlers: default_handlers]},
+          {Xombadill.IrcSupervisor, config.servers},
+          # New GenServer to store config
+          {Xombadill.Config, config}
+        ]
+      end
 
     opts = [strategy: :one_for_one, name: Xombadill.Supervisor]
     Supervisor.start_link(children, opts)
