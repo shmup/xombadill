@@ -4,6 +4,8 @@ defmodule Xombadill.Handlers.BotRelayHandler do
   New functionality: route requests from #splat to the correct bot on the right server, PM them, and relay replies back.
   """
 
+  @relay_registry Xombadill.BotRelayRegistry
+
   @behaviour Xombadill.HandlerBehaviour
   require Logger
 
@@ -39,10 +41,18 @@ defmodule Xombadill.Handlers.BotRelayHandler do
     parse_and_relay(text, nick, channel)
   end
 
-  @impl true
   def handle_message(:private_message, %{text: text, nick: bot_nick}) do
     # PM from libera bot to our nick, forward to #splat
     Logger.debug("RelayHandler: Got PM from #{bot_nick}: #{text}")
+
+    # Send to all waiting processes for this bot
+    Registry.dispatch(@relay_registry, bot_nick, fn entries ->
+      for {pid, _} <- entries do
+        send(pid, {:libera_bot_reply, bot_nick, text})
+      end
+    end)
+
+    # Also say it in the channel as before
     Xombadill.Config.say("[#{bot_nick}] #{text}")
     :ok
   end
@@ -73,11 +83,14 @@ defmodule Xombadill.Handlers.BotRelayHandler do
     libera_client = get_libera_client()
 
     if libera_client do
-      # PM bot_nick with the command; optionally prefix sender_nick for !RELAY context
-      # Example: '!!lg someplayer' becomes PM 'lg someplayer' to Sequell
+      # Register this process to receive replies
+      Registry.register(@relay_registry, bot_nick, nil)
+
+      # PM bot_nick with the command
       ExIRC.Client.msg(libera_client, :privmsg, bot_nick, line)
       Logger.debug("PM sent to #{bot_nick} on libera: #{inspect(line)}")
-      # Setup relay process to catch PM reply and bounce it back to #splat
+
+      # Now spawn the process that waits for a reply
       spawn(fn ->
         relay_libera_pm_response(bot_nick, sender_nick, channel)
       end)

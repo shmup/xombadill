@@ -10,7 +10,7 @@ defmodule Xombadill.Application do
       Xombadill.Handlers.MilestoneHandler,
       Xombadill.Handlers.LearnDBHandler,
       Xombadill.Handlers.PlayerTrackerHandler,
-      Xombadill.Handlers.BotRelayHandler,
+      Xombadill.Handlers.BotRelayHandler
     ]
 
     config = %{
@@ -43,6 +43,7 @@ defmodule Xombadill.Application do
         # In normal operation, start everything
         [
           {Registry, keys: :unique, name: Xombadill.IrcRegistry},
+          {Registry, keys: :duplicate, name: Xombadill.BotRelayRegistry},
           {Xombadill.HandlerRegistry, [default_handlers: default_handlers]},
           {Xombadill.IrcSupervisor, config.servers},
           {Xombadill.TrackedPlayers, ["shmup"]},
