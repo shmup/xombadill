@@ -18,7 +18,7 @@ defmodule Xombadill.Handlers.BotRelayHandler do
     "%%" => "Cheibriados",
     "@??" => "Gretell",
     "@" => "Gretell",
-    "!" => "Henzell",
+    "!" => "Sequell",
     "%" => "Sizzell",
     "&&" => "Sequell",
     "=" => "Jorgrell",
