@@ -29,7 +29,7 @@ defmodule Xombadill.Handlers.MilestoneHandler do
           Xombadill.Config.say(formatted_message)
 
         is_tracked_player_message?(text) ->
-          Xombadill.Config.say("#tracked #{text}")
+          Xombadill.Config.say(text)
 
         true ->
           :ok
