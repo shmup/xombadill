@@ -26,7 +26,8 @@ defmodule Xombadill.MixProject do
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
       {:exirc, git: "https://github.com/shmup/exirc.git", branch: "main"},
       {:mix_test_watch, "~> 1.1", only: :dev, runtime: false},
-      {:mox, "~> 1.0", only: :test}
+      {:mox, "~> 1.0", only: :test},
+      {:cubdb, "~> 2.0.2"}
     ]
   end
 end

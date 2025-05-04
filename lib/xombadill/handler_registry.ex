@@ -92,6 +92,7 @@ defmodule Xombadill.HandlerRegistry do
           :stop ->
             Logger.debug("Handler #{inspect(module)} returned :stop, stopping further processing")
             {:halt, :stopped}
+
           _ ->
             {:cont, :continue}
         end
