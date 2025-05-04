@@ -94,4 +94,18 @@ defmodule Xombadill.HandlerRegistry do
 
     {:noreply, state}
   end
+
+  @impl true
+  def handle_info(msg = {:libera_bot_reply, _, _}, state) do
+    # These messages are for the BotRelayHandler processes
+    # Log and ignore them at this level
+    Logger.debug("Ignoring relay message: #{inspect(msg)}")
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_info(msg, state) do
+    Logger.warning("Unexpected message: #{inspect(msg)}")
+    {:noreply, state}
+  end
 end

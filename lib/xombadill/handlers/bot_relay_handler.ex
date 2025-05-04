@@ -1,7 +1,7 @@
 defmodule Xombadill.Handlers.BotRelayHandler do
   @moduledoc """
-  Handler for relaying commands to bots (e.g. Sequell, Henzell, etc) by using the !!, ??, or similar command prefix in a public channel.
-  New functionality: route requests from #splat to the correct bot on the right server, PM them, and relay replies back.
+  Handler for relaying commands to bots (e.g. Sequell, Henzell, etc) by using the !!, ??, or similar
+  command prefix in a public channel, and routing their responses back to the original channel.
   """
 
   @relay_registry Xombadill.BotRelayRegistry
@@ -9,7 +9,7 @@ defmodule Xombadill.Handlers.BotRelayHandler do
   @behaviour Xombadill.HandlerBehaviour
   require Logger
 
-  # Supported prefixes that trigger a relay; most common are !!, ??, etc
+  # Supported prefixes that trigger a relay
   @relay_prefixes ["!!", "??", "%%", "@??", "@", "!", "%", "=", "$", "^", "&&"]
   # Bot mapping for prefixes to bot nick on libera IRC
   @bot_map %{
@@ -25,74 +25,58 @@ defmodule Xombadill.Handlers.BotRelayHandler do
     "$" => "Lantell",
     "^" => "Rotatell"
   }
-  # Accept both #splat and PM relay responses
   @input_channel "#splat"
   @libera_id :libera
-  @bot_pm_timeout 3500
+  @bot_pm_timeout 5000
 
   @impl true
-  def handle_message(:channel_message, %{
-        text: text,
-        nick: nick,
-        channel: channel,
-        server_id: server_id
-      })
-      when server_id == :slashnet and channel == @input_channel do
-    parse_and_relay(text, nick, channel)
-  end
+  def handle_message(type, message) do
+    case {type, message} do
+      # Handle commands from #splat on slashnet
+      {:channel_message, %{text: text, nick: nick, channel: @input_channel, server_id: :slashnet}} ->
+        handle_possible_command(text, nick)
 
-  def handle_message(:private_message, %{text: text, nick: bot_nick}) do
-    # PM from libera bot to our nick, forward to #splat
-    Logger.debug("RelayHandler: Got PM from #{bot_nick}: #{text}")
-
-    # Send to all waiting processes for this bot
-    Registry.dispatch(@relay_registry, bot_nick, fn entries ->
-      for {pid, _} <- entries do
-        send(pid, {:libera_bot_reply, bot_nick, text})
-      end
-    end)
-
-    # Also say it in the channel as before
-    Xombadill.Config.say("[#{bot_nick}] #{text}")
-    :ok
-  end
-
-  @impl true
-  def handle_message(_, _), do: :ok
-
-  # Step 1: Parse prefix and recognized bot command, relay to right bot as PM
-  defp parse_and_relay(text, sender_nick, channel) do
-    # Try to parse supported prefixes; catch direct bot address or pm-style too
-    case parse_bot_command(text) do
-      {bot_nick, relay_line} ->
-        # We are SENDING the relay command via PM to libera bot nick
-        Logger.info(
-          "Relaying '#{relay_line}' from #{sender_nick} to #{bot_nick} via PM on libera"
-        )
-
-        pm_and_relay(bot_nick, relay_line, sender_nick, channel)
-
-      nil ->
-        Logger.debug("BotRelayHandler: Not a relay command: #{text}")
+      # Handle PMs from bots on Libera - more permissive matching
+      {:private_message, %{nick: bot_nick, text: text}} ->
+        Logger.info("Got PM from #{bot_nick}: #{text}")
+        # Relay to registered processes only
+        Registry.dispatch(@relay_registry, bot_nick, fn entries ->
+          for {pid, _} <- entries do
+            send(pid, {:libera_bot_reply, bot_nick, text})
+          end
+        end)
         :ok
+
+      _ -> :ok
     end
   end
 
-  # Step 2: Actually send the PM to the target bot (on libera) and setup response relay
-  defp pm_and_relay(bot_nick, line, sender_nick, channel) do
+  # Process commands from users in #splat
+  defp handle_possible_command(text, sender_nick) do
+    case parse_bot_command(text) do
+      {bot_nick, relay_line} ->
+        pm_and_relay(bot_nick, relay_line, sender_nick)
+      nil -> :ok
+    end
+  end
+
+  # Send PM to the bot and setup response relay
+  defp pm_and_relay(bot_nick, line, sender_nick) do
     libera_client = get_libera_client()
-
     if libera_client do
-      # Register this process to receive replies
-      Registry.register(@relay_registry, bot_nick, nil)
+      # Use a separate Task for better isolation and error handling
+      Task.start(fn ->
+        # Register ONLY this specific process with the registry for the bot
+        Registry.register(@relay_registry, bot_nick, nil)
 
-      # PM bot_nick with the command
-      ExIRC.Client.msg(libera_client, :privmsg, bot_nick, line)
-      Logger.debug("PM sent to #{bot_nick} on libera: #{inspect(line)}")
+        # Send the message to the bot
+        ExIRC.Client.msg(libera_client, :privmsg, bot_nick, line)
 
-      # Now spawn the process that waits for a reply
-      spawn(fn ->
-        relay_libera_pm_response(bot_nick, sender_nick, channel)
+        # Wait for response
+        relay_libera_pm_response(bot_nick, sender_nick)
+
+        # Clean up by unregistering when done
+        Registry.unregister(@relay_registry, bot_nick)
       end)
     else
       Logger.warning("Could not relay: Libera client not found.")
@@ -100,18 +84,13 @@ defmodule Xombadill.Handlers.BotRelayHandler do
     end
   end
 
-  # Step 3: Wait briefly for bot pm reply; echo it to #splat (from this bot)
-  defp relay_libera_pm_response(bot_nick, sender_nick, _channel) do
+  # Wait for bot PM reply and relay it to the channel
+  defp relay_libera_pm_response(bot_nick, _sender_nick) do
     receive do
       {:libera_bot_reply, ^bot_nick, reply_line} ->
-        Xombadill.Config.say("[relay from #{bot_nick} for #{sender_nick}] #{reply_line}")
+        Xombadill.Config.say("[#{bot_nick}] #{reply_line}")
     after
-      @bot_pm_timeout ->
-        Logger.debug(
-          "RelayHandler: Did not receive bot reply from #{bot_nick} in #{@bot_pm_timeout}ms"
-        )
-
-        :timeout
+      @bot_pm_timeout -> :timeout
     end
   end
 
@@ -120,21 +99,16 @@ defmodule Xombadill.Handlers.BotRelayHandler do
       [{pid, _}] ->
         %{client: client} = :sys.get_state(pid)
         client
-
-      _ ->
-        Logger.error("Libera IRC client not found for relay")
-        nil
+      _ -> nil
     end
   end
 
-  @doc false
-  # Regex (and known map) mappings for standard prefixes; call for any message
+  # Parse bot command from text
   def parse_bot_command(text) do
     Enum.find_value(@relay_prefixes, fn prefix ->
       if String.starts_with?(text, prefix) and String.length(text) > String.length(prefix) do
-        bot_nick = Map.get(@bot_map, prefix, nil) || "Sequell"
-        relay_line = String.trim_leading(text, prefix) |> String.trim()
-        {bot_nick, relay_line}
+        bot_nick = Map.get(@bot_map, prefix, "Sequell")
+        {bot_nick, text}
       else
         nil
       end
