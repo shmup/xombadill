@@ -9,7 +9,8 @@ defmodule Xombadill.Application do
       Xombadill.Handlers.ReloadHandler,
       Xombadill.Handlers.RelayHandler,
       Xombadill.Handlers.MilestoneHandler,
-      Xombadill.Handlers.LearnDBHandler
+      Xombadill.Handlers.LearnDBHandler,
+      Xombadill.Handlers.PlayerTrackerHandler
     ]
 
     config = %{
