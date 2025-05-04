@@ -13,6 +13,11 @@ defmodule Xombadill.Handlers.ReloadHandler do
       text == "!reload" ->
         Task.start(fn -> ReloadCoordinator.reload_all_handlers(channel, client) end)
 
+      String.match?(text, ~r/^!reload\s+(\w+)$/) ->
+        [_, module_name] = Regex.run(~r/^!reload\s+(\w+)$/, text)
+        full_module_name = "Xombadill.Handlers.#{String.capitalize(module_name)}Handler"
+        Task.start(fn -> ReloadCoordinator.reload_module(full_module_name, channel, client) end)
+
       String.starts_with?(text, "!loglevel ") ->
         level_str = String.replace(text, "!loglevel ", "")
 
