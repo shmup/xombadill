@@ -8,6 +8,11 @@ defmodule Xombadill.Handlers.MilestoneHandler do
   @behaviour Xombadill.HandlerBehaviour
   require Logger
 
+  # IRC formatting codes
+  @bold "\x02"
+  @pink "\x0313"
+  @reset "\x0F"
+
   @impl true
   def handle_message(
         :channel_message,
@@ -89,25 +94,15 @@ defmodule Xombadill.Handlers.MilestoneHandler do
   defp is_tracked_player_message?(text) do
     tracked_players = Xombadill.TrackedPlayers.list()
 
-    cond do
+    Enum.any?(tracked_players, fn player ->
       # Match "Player (L12 MiAl)" pattern - player is the primary character
-      Enum.any?(tracked_players, fn player ->
-        Regex.match?(~r/#{Regex.escape(player)}\s+\(L\d+/, text)
-      end) ->
-        true
-
       # Match "ghost of Player" pattern
-      Enum.any?(tracked_players, fn player ->
+      Regex.match?(~r/#{Regex.escape(player)}\s+\(L\d+/, text) ||
         Regex.match?(~r/ghost of #{Regex.escape(player)}/, text)
-      end) ->
-        true
-
-      true ->
-        false
-    end
+    end)
   end
 
   defp format_death_message(text) do
-    "#splat #{text}"
+    "#{@bold}#{@pink}#splat #{text}#{@reset}"
   end
 end
