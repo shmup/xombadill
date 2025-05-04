@@ -5,8 +5,8 @@ defmodule Xombadill.TrackedPlayers do
   @db_dir "cubdb/tracked_players"
 
   # Client API
-  def start_link(_) do
-    GenServer.start_link(__MODULE__, nil, name: __MODULE__)
+  def start_link(initial_players) do
+    GenServer.start_link(__MODULE__, initial_players, name: __MODULE__)
   end
 
   def track(nick) do
@@ -27,13 +27,24 @@ defmodule Xombadill.TrackedPlayers do
 
   # Server Callbacks
   @impl true
-  def init(_) do
+  def init(initial_players) do
     # Ensure directory exists
     File.mkdir_p!(@db_dir)
 
     case CubDB.start_link(@db_dir) do
       {:ok, db} ->
-        Logger.info("TrackedPlayers database initialized")
+        # Merge initial players with existing ones from DB
+        existing_players = CubDB.get(db, "players", [])
+        all_players = (existing_players ++ initial_players) |> Enum.uniq()
+
+        # Only update if there are new players to add
+        if length(all_players) > length(existing_players) do
+          CubDB.put(db, "players", all_players)
+          Logger.info("TrackedPlayers initialized with: #{inspect(all_players)}")
+        else
+          Logger.info("TrackedPlayers loaded from DB: #{inspect(existing_players)}")
+        end
+
         {:ok, %{db: db}}
 
       {:error, reason} ->
