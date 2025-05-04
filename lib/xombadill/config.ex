@@ -13,7 +13,9 @@ defmodule Xombadill.Config do
     GenServer.call(__MODULE__, :get_default_channel)
   end
 
-  # For sending to default channel
+  @doc """
+  Send a message to the default server and channel.
+  """
   def say(message) do
     server = get_default_server()
     channel = get_default_channel()
