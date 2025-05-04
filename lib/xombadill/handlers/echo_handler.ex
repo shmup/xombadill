@@ -10,7 +10,7 @@ defmodule Xombadill.Handlers.EchoHandler do
     Logger.debug("EchoHandler received channel message: #{inspect(message)}")
 
     with %{text: text, nick: nick, channel: channel, client: client} <- message do
-      unless String.starts_with?(text, "!") do
+      unless String.starts_with?(text, "!") or channel != "#splat" do
         ExIRC.Client.msg(client, :privmsg, channel, "#{nick} said: #{text}")
         Logger.debug("EchoHandler sent reply")
       else
