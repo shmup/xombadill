@@ -33,6 +33,12 @@ cd ~/.elixir-ls
 mix deps.get && mix compile && MIX_ENV=prod mix elixir_ls.release2 -o release
 ```
 
+```bash
+mix deps.clean --all
+mix deps.get
+mix test
+```
+
 ```
 :CocConfig
 
