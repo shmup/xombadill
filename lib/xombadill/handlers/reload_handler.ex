@@ -13,10 +13,27 @@ defmodule Xombadill.Handlers.ReloadHandler do
       text == "!reload" ->
         Task.start(fn -> ReloadCoordinator.reload_all_handlers(channel, client) end)
 
-      String.match?(text, ~r/^!reload\s+(\w+)$/) ->
-        [_, module_name] = Regex.run(~r/^!reload\s+(\w+)$/, text)
-        full_module_name = "Xombadill.Handlers.#{String.capitalize(module_name)}Handler"
-        Task.start(fn -> ReloadCoordinator.reload_module(full_module_name, channel, client) end)
+      String.match?(text, ~r/^!reload\s+(.+)$/) ->
+        [_, module_name] = Regex.run(~r/^!reload\s+(.+)$/, text)
+        # Try to find the module by its exact name
+        full_module_name =
+          case module_name do
+            name when byte_size(name) > 0 ->
+              if String.ends_with?(name, "Handler") do
+                "Xombadill.Handlers.#{name}"
+              else
+                "Xombadill.Handlers.#{name}Handler"
+              end
+
+            _ ->
+              nil
+          end
+
+        if full_module_name do
+          Task.start(fn -> ReloadCoordinator.reload_module(full_module_name, channel, client) end)
+        else
+          ExIRC.Client.msg(client, :privmsg, channel, "❌ Invalid module name format")
+        end
 
       text == "!stop" ->
         ExIRC.Client.msg(client, :privmsg, channel, "Usage: !stop <module>")
