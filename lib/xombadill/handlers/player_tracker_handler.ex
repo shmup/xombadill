@@ -11,19 +11,20 @@ defmodule Xombadill.Handlers.PlayerTrackerHandler do
       String.starts_with?(text, "!watch ") ->
         player = String.trim(String.replace(text, "!watch ", ""))
         handle_watch_command(player)
+        :stop
 
       String.starts_with?(text, "!unwatch ") ->
         player = String.trim(String.replace(text, "!unwatch ", ""))
         handle_unwatch_command(player)
+        :stop
 
       text == "!watched" ->
         handle_watched_command()
+        :stop
 
       true ->
         :ok
     end
-
-    :ok
   end
 
   def handle_message(_type, _message), do: :ok

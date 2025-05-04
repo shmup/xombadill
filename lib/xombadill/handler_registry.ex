@@ -82,13 +82,23 @@ defmodule Xombadill.HandlerRegistry do
     # Important: add debug logs to see what's in state.handlers
     Logger.debug("Current handlers: #{inspect(state.handlers)}")
 
-    Enum.each(state.handlers, fn module ->
+    # Use Enum.reduce_while to stop processing when a handler returns :stop
+    Enum.reduce_while(state.handlers, :continue, fn module, _acc ->
       try do
         Logger.debug("Calling handler: #{inspect(module)}")
-        module.handle_message(type, message)
+        result = module.handle_message(type, message)
+
+        case result do
+          :stop ->
+            Logger.debug("Handler #{inspect(module)} returned :stop, stopping further processing")
+            {:halt, :stopped}
+          _ ->
+            {:cont, :continue}
+        end
       rescue
         e ->
           Logger.error("Error in handler #{inspect(module)}: #{inspect(e)}")
+          {:cont, :continue}
       end
     end)
 

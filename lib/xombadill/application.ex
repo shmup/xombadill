@@ -45,7 +45,7 @@ defmodule Xombadill.Application do
           {Registry, keys: :duplicate, name: Xombadill.BotRelayRegistry},
           {Xombadill.HandlerRegistry, [default_handlers: default_handlers]},
           {Xombadill.IrcSupervisor, config.servers},
-          {Xombadill.TrackedPlayers, ["shmup"]},
+          {Xombadill.TrackedPlayers, ["shmup", "neckro23", "ces", "helicomatic", "Lucai"]},
           {Xombadill.Config, config}
         ]
       end
