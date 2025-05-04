@@ -25,7 +25,6 @@ defmodule Xombadill.Handlers.MilestoneHandler do
         } = _msg
       ) do
     cond do
-      # Handle !watch, !unwatch, !watched commands from any channel/server
       String.starts_with?(text, "!watch ") ->
         player = String.trim(String.replace(text, "!watch ", ""))
         handle_watch_command(player)
@@ -37,10 +36,9 @@ defmodule Xombadill.Handlers.MilestoneHandler do
       text == "!watched" ->
         handle_watched_command()
 
-      # Only process milestone messages from Libera/#crawl-octolog
       server_id == :libera && channel == "#crawl-octolog" ->
         cond do
-          is_death_message?(text) ->
+          is_death_message?(text) && is_tracked_player_message?(text) ->
             formatted_message = format_death_message(text)
             Xombadill.Config.say(formatted_message)
 
@@ -103,6 +101,6 @@ defmodule Xombadill.Handlers.MilestoneHandler do
   end
 
   defp format_death_message(text) do
-    "#{@bold}#{@pink}#splat #{text}#{@reset}"
+    "#{@bold}#{@pink}#{text}#{@reset}"
   end
 end
