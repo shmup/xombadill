@@ -44,7 +44,7 @@ defmodule Xombadill.Application do
           {Registry, keys: :unique, name: Xombadill.IrcRegistry},
           {Xombadill.HandlerRegistry, [default_handlers: default_handlers]},
           {Xombadill.IrcSupervisor, config.servers},
-          # New GenServer to store config
+          {Xombadill.TrackedPlayers, ["shmup"]},
           {Xombadill.Config, config}
         ]
       end
