@@ -1,4 +1,8 @@
 defmodule Xombadill.Handlers.RelayHandler do
+  @moduledoc """
+  A handler that relays messages from one channel to another based on certain conditions.
+  """
+
   @behaviour Xombadill.HandlerBehaviour
   require Logger
 

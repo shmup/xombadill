@@ -1,4 +1,8 @@
 defmodule Xombadill.Handlers.ReloadHandler do
+  @moduledoc """
+  A handler that reloads all handlers when a specific command is received.
+  """
+
   @behaviour Xombadill.HandlerBehaviour
   require Logger
   alias Xombadill.ReloadCoordinator
