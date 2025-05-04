@@ -18,6 +18,22 @@ defmodule Xombadill.Handlers.ReloadHandler do
         full_module_name = "Xombadill.Handlers.#{String.capitalize(module_name)}Handler"
         Task.start(fn -> ReloadCoordinator.reload_module(full_module_name, channel, client) end)
 
+      text == "!stop" ->
+        ExIRC.Client.msg(client, :privmsg, channel, "Usage: !stop <module>")
+
+      String.match?(text, ~r/^!stop\s+(\w+)$/) ->
+        [_, module_name] = Regex.run(~r/^!stop\s+(\w+)$/, text)
+        full_module_name = "Xombadill.Handlers.#{String.capitalize(module_name)}Handler"
+        Task.start(fn -> ReloadCoordinator.stop_module(full_module_name, channel, client) end)
+
+      text == "!start" ->
+        ExIRC.Client.msg(client, :privmsg, channel, "Usage: !start <module>")
+
+      String.match?(text, ~r/^!start\s+(\w+)$/) ->
+        [_, module_name] = Regex.run(~r/^!start\s+(\w+)$/, text)
+        full_module_name = "Xombadill.Handlers.#{String.capitalize(module_name)}Handler"
+        Task.start(fn -> ReloadCoordinator.start_module(full_module_name, channel, client) end)
+
       String.starts_with?(text, "!loglevel ") ->
         level_str = String.replace(text, "!loglevel ", "")
 

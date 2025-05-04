@@ -75,4 +75,44 @@ defmodule Xombadill.ReloadCoordinator do
 
     Xombadill.Config.say("✅ All handlers reloaded")
   end
+
+  def stop_module(module_name, channel, client) do
+    Logger.info("Attempting to stop module: #{module_name}")
+
+    try do
+      module = String.to_existing_atom("Elixir." <> module_name)
+      Xombadill.HandlerRegistry.unregister(module)
+      Xombadill.Config.say("✅ Module #{module_name} stopped")
+    rescue
+      e ->
+        Logger.error("Failed to stop module #{module_name}: #{inspect(e)}")
+
+        ExIRC.Client.msg(
+          client,
+          :privmsg,
+          channel,
+          "❌ Error stopping #{module_name}: #{inspect(e)}"
+        )
+    end
+  end
+
+  def start_module(module_name, channel, client) do
+    Logger.info("Attempting to start module: #{module_name}")
+
+    try do
+      module = String.to_existing_atom("Elixir." <> module_name)
+      Xombadill.HandlerRegistry.register(module)
+      Xombadill.Config.say("✅ Module #{module_name} started")
+    rescue
+      e ->
+        Logger.error("Failed to start module #{module_name}: #{inspect(e)}")
+
+        ExIRC.Client.msg(
+          client,
+          :privmsg,
+          channel,
+          "❌ Error starting #{module_name}: #{inspect(e)}"
+        )
+    end
+  end
 end
