@@ -5,7 +5,6 @@ defmodule Xombadill.Application do
   @impl true
   def start(_type, _args) do
     default_handlers = [
-      Xombadill.Handlers.EchoHandler,
       Xombadill.Handlers.ReloadHandler,
       Xombadill.Handlers.RelayHandler,
       Xombadill.Handlers.MilestoneHandler,
