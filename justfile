@@ -3,3 +3,6 @@ dev:
 
 fmt:
   mix format
+
+test:
+  mix test

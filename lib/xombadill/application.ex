@@ -33,7 +33,8 @@ defmodule Xombadill.Application do
       {Registry, keys: :unique, name: Xombadill.IrcRegistry},
       {Xombadill.HandlerRegistry, [default_handlers: default_handlers]},
       {Xombadill.IrcSupervisor, config.servers},
-      {Xombadill.Config, config}  # New GenServer to store config
+      # New GenServer to store config
+      {Xombadill.Config, config}
     ]
 
     opts = [strategy: :one_for_one, name: Xombadill.Supervisor]
