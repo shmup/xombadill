@@ -93,7 +93,7 @@ defmodule Xombadill.Handlers.BotRelayHandler do
   defp relay_libera_pm_response(bot_nick, _sender_nick) do
     receive do
       {:libera_bot_reply, ^bot_nick, reply_line} ->
-        Xombadill.Config.say("[#{bot_nick}] #{reply_line}")
+        Xombadill.Config.say("#{reply_line}")
     after
       @bot_pm_timeout -> :timeout
     end
