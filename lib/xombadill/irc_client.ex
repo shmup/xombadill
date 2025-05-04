@@ -124,7 +124,7 @@ defmodule Xombadill.IrcClient do
 
   # handle public messages
   def handle_info({:received, msg, %{nick: nick, user: user, host: host}, channel}, state) do
-    Logger.info("[#{state.server_id}] #{channel} #{nick}: #{msg}", truncate: :infinity)
+    Logger.info("[#{state.server_id}] #{channel} <#{nick}> #{msg}", truncate: :infinity)
 
     HandlerRegistry.handle_message(:channel_message, %{
       text: msg,
