@@ -33,7 +33,7 @@ defmodule Xombadill.ReloadCoordinator do
 
       Xombadill.HandlerRegistry.register(module)
 
-      ExIRC.Client.msg(client, :privmsg, channel, "✅ Module #{module_name} reloaded successfully")
+      Xombadill.Config.say("✅ Module #{module_name} reloaded successfully")
     rescue
       e ->
         Logger.error("Failed to reload module #{module_name}: #{inspect(e)}")
@@ -55,6 +55,6 @@ defmodule Xombadill.ReloadCoordinator do
       reload_module(module_name, channel, client)
     end)
 
-    ExIRC.Client.msg(client, :privmsg, channel, "✅ All handlers reloaded")
+    Xombadill.Config.say("✅ All handlers reloaded")
   end
 end

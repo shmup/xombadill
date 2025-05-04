@@ -10,24 +10,30 @@ defmodule Xombadill.Application do
       Xombadill.Handlers.RelayHandler
     ]
 
+    config = %{
+      default_server: :slashnet,
+      default_channel: "#splat",
+      servers: %{
+        slashnet: %{
+          host: "irc.slashnet.org",
+          port: 6667,
+          nick: "xombadill",
+          channels: ["#splat"]
+        },
+        libera: %{
+          host: "irc.libera.chat",
+          port: 6667,
+          nick: "xombadill",
+          channels: ["#pissss"]
+        }
+      }
+    }
+
     children = [
       {Registry, keys: :unique, name: Xombadill.IrcRegistry},
       {Xombadill.HandlerRegistry, [default_handlers: default_handlers]},
-      {Xombadill.IrcSupervisor,
-       %{
-         slashnet: %{
-           host: "irc.slashnet.org",
-           port: 6667,
-           nick: "xombadill",
-           channels: ["#splat"]
-         },
-         libera: %{
-           host: "irc.libera.chat",
-           port: 6667,
-           nick: "xombadill",
-           channels: ["#pissss"]
-         }
-       }}
+      {Xombadill.IrcSupervisor, config.servers},
+      {Xombadill.Config, config}  # New GenServer to store config
     ]
 
     opts = [strategy: :one_for_one, name: Xombadill.Supervisor]
