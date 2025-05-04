@@ -19,9 +19,8 @@ defmodule Xombadill.Handlers.RelayHandler do
       ) do
     # Configure which messages to relay
     if server_id == :libera && channel == "#pissss" && contains_milestone?(text) do
-      # Relay to slashnet #splat
       relay_message = "[#{server_host}/#{channel}] <#{nick}> #{text}"
-      Xombadill.IrcClient.say(:slashnet, "#splat", relay_message)
+      Xombadill.Config.say(relay_message)
     end
 
     :ok
