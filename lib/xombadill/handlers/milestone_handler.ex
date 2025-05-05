@@ -42,7 +42,7 @@ defmodule Xombadill.Handlers.MilestoneHandler do
   def handle_message(_type, _message), do: :ok
 
   defp is_death_message?(text) do
-    Regex.match?(~r/\(L\d+\s+\w+\w+\).+with\s+\d+\s+points\s+after\s+\d+\s+turns/, text)
+    Regex.match?(~r/with\s+\d+\s+points\s+after\s+\d+\s+turns/, text)
   end
 
   defp is_tracked_player_message?(text) do
