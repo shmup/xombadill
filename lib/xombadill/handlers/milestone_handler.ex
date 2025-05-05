@@ -22,7 +22,7 @@ defmodule Xombadill.Handlers.MilestoneHandler do
           server_id: server_id
         } = _msg
       ) do
-    if server_id == :libera && channel == "#crawl-octolog" do
+    if server_id == :libera && channel in ["#crawl-octolog", "#pissss"] do
       cond do
         is_death_message?(text) && is_tracked_player_message?(text) ->
           formatted_message = format_death_message(text)
