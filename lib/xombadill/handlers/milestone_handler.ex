@@ -42,15 +42,16 @@ defmodule Xombadill.Handlers.MilestoneHandler do
   def handle_message(_type, _message), do: :ok
 
   defp is_death_message?(text) do
-    Regex.match?(~r/with\s+\d+\s+points\s+after\s+\d+\s+turns/, text)
+    Regex.match?(~r/\(L\d+.*\).*with \d+ points after \d+ turns and \d+:\d+:\d+\./, text)
   end
 
   defp is_tracked_player_message?(text) do
     tracked_players = Xombadill.TrackedPlayers.list()
 
     Enum.any?(tracked_players, fn player ->
-      Regex.match?(~r/#{Regex.escape(player)}\s+\(L\d+/, text) ||
-        Regex.match?(~r/ghost of #{Regex.escape(player)}/, text)
+      Regex.match?(~r/^#{Regex.escape(player)}\s+\(L\d+/, text) ||
+      Regex.match?(~r/^#{Regex.escape(player)}\s+the\s+\w+\s+\(L\d+/, text) ||
+      Regex.match?(~r/ghost of #{Regex.escape(player)}/, text)
     end)
   end
 
