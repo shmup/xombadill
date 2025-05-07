@@ -1,7 +1,10 @@
 defmodule Xombadill.ReloadCoordinator do
   @moduledoc """
-  Handles the actual reloading logic, separate from handler code.
-  This module is not intended to be reloaded.
+  Encapsulates the logic for hot-reloading handler modules at runtime.
+  Provides support functions for reloading, stopping, and starting handler modules via
+  ReloadHandler commands, and manages messaging back to IRC clients on success/failure.
+
+  This module itself is not hot-reloaded; it's relied on by the reload handler logic.
   """
   require Logger
 

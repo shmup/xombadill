@@ -1,6 +1,7 @@
 defmodule Xombadill.Handlers.ReloadHandler do
   @moduledoc """
-  A handler that reloads all handlers when a specific command is received.
+  Handler that provides IRC commands to reload, start, or stop handler modules
+  and change log level at runtime, primarily for debugging and administration.
   """
 
   @behaviour Xombadill.HandlerBehaviour

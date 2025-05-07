@@ -1,6 +1,9 @@
 defmodule Xombadill.Handlers.LinkExplainHandler do
   @moduledoc """
-  This handler will recognize URLs in messages and explain them.
+  Handler that recognizes YouTube links in channel messages and fetches their titles.
+
+  Looks for YouTube URLs (various types) in incoming channel messages, fetches the webpage,
+  extracts and relays the video title to the channel for context.
   """
   @behaviour Xombadill.HandlerBehaviour
   require Logger

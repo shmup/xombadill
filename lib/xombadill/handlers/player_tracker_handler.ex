@@ -1,4 +1,10 @@
 defmodule Xombadill.Handlers.PlayerTrackerHandler do
+  @moduledoc """
+  Handler to allow channel commands to manage the list of tracked players for milestones.
+
+  Provides `!watch`, `!unwatch`, and `!watched` commands to control which players are actively
+  being followed in milestone broadcasts.
+  """
   @behaviour Xombadill.HandlerBehaviour
   require Logger
 

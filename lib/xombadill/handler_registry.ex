@@ -1,7 +1,11 @@
 defmodule Xombadill.HandlerRegistry do
   @moduledoc """
   Registry for IRC message handlers.
-  Allows dynamic registration and management of handlers while the bot is running.
+
+  Allows dynamic registration, unregistration, and management of handler modules while the bot is running.
+  All messages/events from the IRC client are passed through each registered handler in order.
+
+  The registry itself is a GenServer that maintains a list of handler module atoms.
   """
   use GenServer
   require Logger

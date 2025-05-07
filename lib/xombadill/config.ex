@@ -1,4 +1,10 @@
 defmodule Xombadill.Config do
+  @moduledoc """
+  State manager for global Xombadill configuration using GenServer.
+
+  Holds the global config (e.g., default server and channel),
+  and provides helper functions for broadcasting messages in a consistent way.
+  """
   use GenServer
 
   def start_link(config) do

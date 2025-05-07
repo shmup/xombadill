@@ -1,4 +1,9 @@
 defmodule Xombadill.IrcSupervisor do
+  @moduledoc """
+  Supervisor for all IRC client connections within Xombadill.
+
+  Starts an Xombadill.IrcClient process for each enabled server according to configuration.
+  """
   use Supervisor
   require Logger
 

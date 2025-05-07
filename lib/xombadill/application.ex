@@ -1,4 +1,11 @@
 defmodule Xombadill.Application do
+  @moduledoc """
+  The main Application module for the Xombadill bot.
+  Responsible for supervising all processes, including the handler registries, IRC connections,
+  and all other stateful components within the application.
+
+  Starts different supervision trees depending on the environment (e.g., less during test).
+  """
   use Application
   require Logger
 

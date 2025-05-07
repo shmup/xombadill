@@ -1,6 +1,8 @@
 defmodule Xombadill.HandlerBehaviour do
   @moduledoc """
-  Behaviour for IRC message handlers.
+  Behaviour definition for IRC message handlers in Xombadill.
+  Handler modules implementing this behaviour are used to respond to various IRC events,
+  such as messages, joins, nick changes, etc.
   """
 
   @doc """

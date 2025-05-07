@@ -1,9 +1,11 @@
 defmodule Xombadill.Handlers.MilestoneHandler do
   @moduledoc """
-  A handler that relays DCSS deaths and other milestones from Libera/#crawl-octolog
-  to the configured channel based on certain patterns or tracked players.
-  Also handles commands to manage tracked players.
+  Handler that relays DCSS (Dungeon Crawl Stone Soup) deaths and other milestone notifications
+  from Libera IRC (#crawl-octolog, #pissss) to the configured channel based on tracked player patterns.
+
+  It highlights death announcements and also echoes messages relating to watched players.
   """
+  # shmup the Firebug (L4 TeFE), blasted by Natasha (puff of flame) on D:2, with 92 points after 2024 turns and 0:05:29.
 
   @behaviour Xombadill.HandlerBehaviour
   require Logger

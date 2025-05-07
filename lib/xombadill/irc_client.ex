@@ -1,4 +1,11 @@
 defmodule Xombadill.IrcClient do
+  @moduledoc """
+  State and handler module for a single IRC client connection.
+  All real communication with the IRC network happens here, including login, joining,
+  disconnect handling, and dispatching messages to the HandlerRegistry.
+
+  Provides helpers to send messages, join/part channels, and query internal state.
+  """
   use GenServer
   require Logger
   alias Xombadill.HandlerRegistry

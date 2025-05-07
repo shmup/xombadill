@@ -1,7 +1,10 @@
 defmodule Xombadill.Handlers.BotRelayHandler do
   @moduledoc """
-  Handler for relaying commands to bots (e.g. Sequell, Henzell, etc) by using the !!, ??, or similar
-  command prefix in a public channel, and routing their responses back to the original channel.
+  Handler for relaying commands to bots (e.g. Sequell, Henzell, Cheibriados, etc) by detecting
+  special command prefixes in public channel messages and piping the responses back into the
+  channel after collecting private message replies from the bots.
+
+  This enables relaying `!!`, `??`, `%%`, `@`, etc. to bots such as Sequell, Cheibriados, Gretell, etc.
   """
 
   @relay_registry Xombadill.BotRelayRegistry

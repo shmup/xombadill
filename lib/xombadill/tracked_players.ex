@@ -1,4 +1,10 @@
 defmodule Xombadill.TrackedPlayers do
+  @moduledoc """
+  GenServer state module to maintain a persistent set of tracked player nicks for milestone notifications.
+
+  Tracked player nicks are stored persistently in CubDB and can be dynamically added or removed at runtime.
+  The module provides a simple API for manage/querying the tracked list.
+  """
   use GenServer
   require Logger
 
