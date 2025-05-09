@@ -5,7 +5,6 @@ defmodule Xombadill.Handlers.MilestoneHandler do
 
   It highlights death announcements and also echoes messages relating to watched players.
   """
-  # shmup the Firebug (L4 TeFE), blasted by Natasha (puff of flame) on D:2, with 92 points after 2024 turns and 0:05:29.
 
   @behaviour Xombadill.HandlerBehaviour
   require Logger
@@ -61,8 +60,8 @@ defmodule Xombadill.Handlers.MilestoneHandler do
 
     Enum.any?(tracked_players, fn player ->
       Regex.match?(~r/^#{Regex.escape(player)}\s+\(L\d+/, text) ||
-      Regex.match?(~r/^#{Regex.escape(player)}\s+the\s+\w+\s+\(L\d+/, text) ||
-      Regex.match?(~r/ghost of #{Regex.escape(player)}/, text)
+        Regex.match?(~r/^#{Regex.escape(player)}\s+the\s+\w+\s+\(L\d+/, text) ||
+        Regex.match?(~r/ghost of #{Regex.escape(player)}/, text)
     end)
   end
 
